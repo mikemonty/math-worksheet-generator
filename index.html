@@ -15,24 +15,71 @@
   <main class="app">
     <!-- Controls -->
     <aside class="controls no-print">
+      <!-- Mode -->
       <div class="group">
-        <label for="gradeLevel"><strong>Grade level</strong></label>
-        <select id="gradeLevel">
-          <option value="3" selected>Grade 3 (0–10 facts)</option>
-          <option value="4">Grade 4 (0–12 facts)</option>
-          <option value="5">Grade 5 (0–12, optional 2-digit × 1-digit)</option>
-        </select>
-      </div>
-
-      <div class="group" id="grade5Extras">
+        <label><strong>Difficulty mode</strong></label>
         <label class="checkbox">
-          <input type="checkbox" id="allowTwoDigit" />
-          Allow 2-digit × 1-digit
+          <input type="radio" name="mode" value="grade" id="modeGrade" checked />
+          Grade presets
         </label>
-        <label for="twoDigitMax">Max 2-digit (10–99)</label>
-        <input id="twoDigitMax" type="number" min="10" max="99" value="99" />
+        <label class="checkbox">
+          <input type="radio" name="mode" value="custom" id="modeCustom" />
+          Custom digits (pick # of digits for each factor)
+        </label>
       </div>
 
+      <!-- Grade controls -->
+      <div id="gradeControls">
+        <div class="group">
+          <label for="gradeLevel"><strong>Grade level</strong></label>
+          <select id="gradeLevel">
+            <option value="3" selected>Grade 3 (0–10 facts)</option>
+            <option value="4">Grade 4 (0–12 facts)</option>
+            <option value="5">Grade 5 (0–12, optional 2-digit × 1-digit)</option>
+          </select>
+        </div>
+
+        <div class="group" id="grade5Extras">
+          <label class="checkbox">
+            <input type="checkbox" id="allowTwoDigit" />
+            Allow 2-digit × 1-digit
+          </label>
+          <label for="twoDigitMax">Max 2-digit (10–99)</label>
+          <input id="twoDigitMax" type="number" min="10" max="99" value="99" />
+        </div>
+      </div>
+
+      <!-- Custom digit controls -->
+      <div id="customControls" style="display:none">
+        <div class="group">
+          <label><strong>Operand A (left) digits</strong></label>
+          <div class="manual-row">
+            <label for="aMinDigits" style="margin:0">Min</label>
+            <input id="aMinDigits" type="number" min="1" max="6" value="2" />
+            <label for="aMaxDigits" style="margin:0">Max</label>
+            <input id="aMaxDigits" type="number" min="1" max="6" value="2" />
+          </div>
+        </div>
+
+        <div class="group">
+          <label><strong>Operand B (right) digits</strong></label>
+          <div class="manual-row">
+            <label for="bMinDigits" style="margin:0">Min</label>
+            <input id="bMinDigits" type="number" min="1" max="6" value="2" />
+            <label for="bMaxDigits" style="margin:0">Max</label>
+            <input id="bMaxDigits" type="number" min="1" max="6" value="2" />
+          </div>
+        </div>
+
+        <div class="group">
+          <label class="checkbox">
+            <input type="checkbox" id="allowZero" />
+            Allow zeros (e.g., 0 × 47)
+          </label>
+        </div>
+      </div>
+
+      <!-- Generic layout controls -->
       <div class="group">
         <label for="problemsCount"><strong>Problems per page</strong></label>
         <input id="problemsCount" type="number" min="4" max="120" step="1" value="36" />
@@ -66,9 +113,9 @@
       <div class="group">
         <h3>Manual problems</h3>
         <div class="manual-row">
-          <input id="manA" type="number" min="0" max="999" placeholder="a" />
+          <input id="manA" type="number" min="0" max="999999" placeholder="a" />
           <span>×</span>
-          <input id="manB" type="number" min="0" max="999" placeholder="b" />
+          <input id="manB" type="number" min="0" max="999999" placeholder="b" />
           <button id="addManual" class="secondary">Add</button>
         </div>
         <small>Manual problems are used first; remaining slots are filled randomly.</small>
@@ -90,25 +137,27 @@
       <!-- Worksheet Page -->
       <article id="worksheetPage" class="page">
         <header class="page-header">
-          <div class="title">
-            <div id="worksheetTitle">Multiplication Practice</div>
-            <div id="worksheetSub"></div>
-          </div>
-          <div class="name-date" id="nameDateLine">
-            <span>Name: ____________</span>
-            <span>Date: ____________</span>
+          <div class="title-block">
+            <div class="worksheet-title" id="worksheetTitle">Multiplication Practice</div>
+            <div class="worksheet-sub" id="worksheetSub"></div>
+
+            <!-- Name/Date line directly beneath title -->
+            <div class="name-date-line" id="nameDateLine">
+              <div class="name">Name:</div>
+              <div class="date">Date:</div>
+            </div>
           </div>
         </header>
 
         <div id="problemsGrid" class="grid"></div>
       </article>
 
-      <!-- Answer Key Page (conditionally shown) -->
+      <!-- Answer Key Page (never shows name/date) -->
       <article id="answerPage" class="page" aria-hidden="true">
         <header class="page-header">
-          <div class="title">
-            <div>Answer Key</div>
-            <div id="answerSub"></div>
+          <div class="title-block">
+            <div class="worksheet-title">Answer Key</div>
+            <div class="worksheet-sub" id="answerSub"></div>
           </div>
         </header>
 

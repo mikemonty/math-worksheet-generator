@@ -1,24 +1,41 @@
 (function () {
   const els = {
+    // mode
+    modeGrade: document.getElementById('modeGrade'),
+    modeCustom: document.getElementById('modeCustom'),
+    gradeControls: document.getElementById('gradeControls'),
+    customControls: document.getElementById('customControls'),
+
+    // grade fields
     grade: document.getElementById('gradeLevel'),
     allowTwoDigit: document.getElementById('allowTwoDigit'),
     twoDigitMax: document.getElementById('twoDigitMax'),
+
+    // custom digit fields
+    aMinDigits: document.getElementById('aMinDigits'),
+    aMaxDigits: document.getElementById('aMaxDigits'),
+    bMinDigits: document.getElementById('bMinDigits'),
+    bMaxDigits: document.getElementById('bMaxDigits'),
+    allowZero: document.getElementById('allowZero'),
+
+    // common controls
     problemsCount: document.getElementById('problemsCount'),
     layout: document.getElementById('layout'),
     includeNameDate: document.getElementById('includeNameDate'),
     includeAnswerKey: document.getElementById('includeAnswerKey'),
 
-    grade5Extras: document.getElementById('grade5Extras'),
-
+    // manual
     manA: document.getElementById('manA'),
     manB: document.getElementById('manB'),
     addManual: document.getElementById('addManual'),
     manualList: document.getElementById('manualList'),
 
+    // actions
     generateBtn: document.getElementById('generateBtn'),
     clearBtn: document.getElementById('clearBtn'),
     printBtn: document.getElementById('printBtn'),
 
+    // pages
     worksheetTitle: document.getElementById('worksheetTitle'),
     worksheetSub: document.getElementById('worksheetSub'),
     nameDateLine: document.getElementById('nameDateLine'),
@@ -26,7 +43,10 @@
 
     answerPage: document.getElementById('answerPage'),
     answerSub: document.getElementById('answerSub'),
-    answersGrid: document.getElementById('answersGrid')
+    answersGrid: document.getElementById('answersGrid'),
+
+    // misc
+    grade5Extras: document.getElementById('grade5Extras')
   };
 
   /** State */
@@ -35,7 +55,24 @@
 
   /** Utils */
   const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  function pow10(n){ return Math.pow(10, n); }
+  function clampDigits(minD, maxD){
+    const a = Math.max(1, Math.min(6, Number(minD) || 1));
+    const b = Math.max(1, Math.min(6, Number(maxD) || 1));
+    return {minD: Math.min(a, b), maxD: Math.max(a, b)};
+  }
+  function randNDigit(minDigits, maxDigits, allowZero=false){
+    const d = randInt(minDigits, maxDigits);
+    if (d === 1 && allowZero) {
+      // 0–9 inclusive
+      return randInt(0, 9);
+    }
+    const low = (d === 1) ? 1 : pow10(d - 1); // avoid leading zeros
+    const high = pow10(d) - 1;
+    return randInt(low, high);
+  }
 
+  /** Grade preset config */
   function gradeConfig(grade, allowTwoDigit, twoDigitMax) {
     if (grade === '3') {
       return { aMin: 0, aMax: 10, bMin: 0, bMax: 10, allow2x1: false, twoDigitMax: 0 };
@@ -44,10 +81,13 @@
       return { aMin: 0, aMax: 12, bMin: 0, bMax: 12, allow2x1: false, twoDigitMax: 0 };
     }
     // grade 5
-    return { aMin: 0, aMax: 12, bMin: 0, bMax: 12, allow2x1: !!allowTwoDigit, twoDigitMax: Math.max(10, Math.min(99, Number(twoDigitMax) || 99)) };
+    return {
+      aMin: 0, aMax: 12, bMin: 0, bMax: 12,
+      allow2x1: !!allowTwoDigit,
+      twoDigitMax: Math.max(10, Math.min(99, Number(twoDigitMax) || 99))
+    };
   }
-
-  function makeRandomProblem(cfg) {
+  function makeRandomProblemFromGrade(cfg) {
     if (cfg.allow2x1 && Math.random() < 0.4) {
       const a = randInt(10, cfg.twoDigitMax);
       const b = randInt(2, 9);
@@ -55,6 +95,13 @@
     }
     const a = randInt(cfg.aMin, cfg.aMax);
     const b = randInt(cfg.bMin, cfg.bMax);
+    return { a, b };
+  }
+
+  /** Custom digits generator */
+  function makeRandomProblemFromDigits(aMinD, aMaxD, bMinD, bMaxD, allowZero){
+    const a = randNDigit(aMinD, aMaxD, allowZero);
+    const b = randNDigit(bMinD, bMaxD, allowZero);
     return { a, b };
   }
 
@@ -92,95 +139,114 @@
     renderManualList();
   });
 
-  /** Grade 5 extra controls visibility */
-  function toggleGrade5Extras() {
-    els.grade5Extras.style.display = els.grade.value === '5' ? '' : 'none';
+  /** Mode toggle UI */
+  function syncModeUI(){
+    const useGrade = els.modeGrade.checked;
+    els.gradeControls.style.display = useGrade ? '' : 'none';
+    els.customControls.style.display = useGrade ? 'none' : '';
+    // keep grade5 extras visibility tied to grade selection
+    els.grade5Extras.style.display = (useGrade && els.grade.value === '5') ? '' : 'none';
   }
-  toggleGrade5Extras();
+  els.modeGrade.addEventListener('change', syncModeUI);
+  els.modeCustom.addEventListener('change', syncModeUI);
+
+  function toggleGrade5Extras() {
+    els.grade5Extras.style.display = (els.modeGrade.checked && els.grade.value === '5') ? '' : 'none';
+  }
   els.grade.addEventListener('change', toggleGrade5Extras);
 
-  /** Helpers to evenly fill the page with a grid */
+  /** Even grid helpers */
   function setEvenGrid(container, count, layout, answers=false) {
-    // Choose base columns by layout; allow small auto-adjusts for very small counts
     let cols = layout === 'vertical' ? 3 : 4;
-
-    // If very few problems, reduce columns so spacing looks natural
-    if (count <= 6) cols = Math.max(2, layout === 'vertical' ? 2 : 2);
+    if (count <= 6) cols = Math.max(2, 2);
     if (count === 1) cols = 1;
 
-    // Compute rows to fit everything
     const rows = Math.ceil(count / cols);
-
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-    // Answers page: often denser works; keep 4 columns where possible
     if (answers) {
       container.style.gridTemplateColumns = `repeat(4, 1fr)`;
       container.style.gridTemplateRows = `repeat(${Math.ceil(count / 4)}, 1fr)`;
     }
   }
 
-  /** Generate problems */
+  /** Generate */
   function generate() {
     const count = Math.max(4, Math.min(120, Number(els.problemsCount.value) || 36));
-    const cfg = gradeConfig(els.grade.value, els.allowTwoDigit.checked, els.twoDigitMax.value);
 
-    // Start with manual (dedupe exact duplicates)
     const out = [];
     const seen = new Set();
     const key = (p) => `${p.a}x${p.b}`;
 
+    // Manual first (dedupe)
     manual.forEach(p => {
       const k = key(p);
       if (!seen.has(k)) { out.push({ a:p.a, b:p.b }); seen.add(k); }
     });
 
-    // Fill the rest with randoms
+    // Mode-dependent random fill
     let guard = 0;
-    while (out.length < count && guard < 5000) {
-      const p = makeRandomProblem(cfg);
-      const k = key(p);
-      if (!seen.has(k)) {
-        out.push(p);
-        seen.add(k);
+    if (els.modeGrade.checked) {
+      const cfg = gradeConfig(els.grade.value, els.allowTwoDigit.checked, els.twoDigitMax.value);
+      while (out.length < count && guard < 10000) {
+        const p = makeRandomProblemFromGrade(cfg);
+        const k = key(p);
+        if (!seen.has(k)) { out.push(p); seen.add(k); }
+        guard++;
       }
-      guard++;
+    } else {
+      const aD = clampDigits(els.aMinDigits.value, els.aMaxDigits.value);
+      const bD = clampDigits(els.bMinDigits.value, els.bMaxDigits.value);
+      const allowZero = !!els.allowZero.checked;
+
+      while (out.length < count && guard < 10000) {
+        const p = makeRandomProblemFromDigits(aD.minD, aD.maxD, bD.minD, bD.maxD, allowZero);
+        const k = key(p);
+        if (!seen.has(k)) { out.push(p); seen.add(k); }
+        guard++;
+      }
     }
 
     lastGenerated = out;
 
-    // Render worksheet (with even distribution)
+    // Render worksheet
     renderWorksheet(out);
 
-    // Render answer key (optional)
+    // Answer key
     const includeKey = els.includeAnswerKey.checked;
     els.answerPage.setAttribute('aria-hidden', includeKey ? 'false' : 'true');
     els.answerPage.style.display = includeKey ? '' : 'none';
     if (includeKey) renderAnswerKey(out);
 
-    // Header lines & subtitles
-    document.getElementById('nameDateLine').style.visibility = els.includeNameDate.checked ? 'visible' : 'hidden';
+    // Headers (and Name/Date visibility, worksheet only)
+    els.nameDateLine.style.display = els.includeNameDate.checked ? 'flex' : 'none';
 
     const layoutLabel = els.layout.value === 'vertical' ? 'Vertical' : 'Horizontal';
-    const gradeLabel = `Grade ${els.grade.value}`;
+    const modeLabel = els.modeGrade.checked ? `Grade ${els.grade.value}` : customModeLabel();
     const countLabel = `${out.length} problems • ${layoutLabel}`;
-    els.worksheetSub.textContent = `${gradeLabel} • ${countLabel}`;
-    els.answerSub.textContent = `${gradeLabel} • Matching the worksheet`;
+    els.worksheetSub.textContent = `${modeLabel} • ${countLabel}`;
+    els.answerSub.textContent = `${modeLabel} • Matching the worksheet`;
+  }
+
+  function customModeLabel(){
+    const aD = clampDigits(els.aMinDigits.value, els.aMaxDigits.value);
+    const bD = clampDigits(els.bMinDigits.value, els.bMaxDigits.value);
+    const aTxt = (aD.minD === aD.maxD) ? `${aD.minD}-digit` : `${aD.minD}–${aD.maxD}-digit`;
+    const bTxt = (bD.minD === bD.maxD) ? `${bD.minD}-digit` : `${bD.minD}–${bD.maxD}-digit`;
+    return `${aTxt} × ${bTxt}${els.allowZero.checked ? ' (zeros allowed)' : ''}`;
   }
 
   function renderWorksheet(problems) {
-    const layout = els.layout.value; // "horizontal" | "vertical"
+    const layout = els.layout.value;
     const grid = els.problemsGrid;
     grid.innerHTML = '';
 
-    // Build nodes
     problems.forEach(p => {
       const node = (layout === 'vertical') ? verticalProblemNode(p) : horizontalProblemNode(p);
       grid.appendChild(node);
     });
 
-    // Evenly distribute across the page area
     setEvenGrid(grid, problems.length, layout, false);
   }
 
@@ -198,7 +264,6 @@
       grid.appendChild(wrap);
     });
 
-    // Even grid for answers too (denser)
     setEvenGrid(grid, problems.length, 'horizontal', true);
   }
 
@@ -242,6 +307,9 @@
   });
   els.printBtn.addEventListener('click', () => window.print());
 
-  // Initial render
+  // Init
+  syncModeUI();
+  toggleGrade5Extras();
+  renderManualList();
   generate();
 })();

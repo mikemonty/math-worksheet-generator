@@ -81,13 +81,47 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   min-height: var(--print-page-height);
 }
 
+/* Header + title block */
 .page-header{
-  display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:8px;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:12px; margin-bottom:8px;
 }
-.page-header .title div:first-child{ font-size:20px; font-weight:700; }
-.page-header .title div:last-child{ color:var(--muted); font-size:14px; }
-.page-header .name-date{
-  display:flex; gap:24px; font-size:14px; color:#000;
+.title-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.worksheet-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+.worksheet-sub {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Name/Date line directly under title */
+.name-date-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 6px;
+  gap: 20px;
+}
+.name-date-line .name,
+.name-date-line .date {
+  flex: 1;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+.name-date-line .name::after,
+.name-date-line .date::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #000;
+  margin-left: 6px;
 }
 
 /* GRID now fills the remaining vertical space and spreads content evenly */
