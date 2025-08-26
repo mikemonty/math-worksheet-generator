@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-orientation="portrait">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -174,8 +174,8 @@
     <!-- Worksheet & Answer Key -->
     <section class="pages">
       <!-- PREVIEW WRAPPER scales the page for screen without affecting print -->
-      <div class="page-preview">
-        <article id="worksheetPage" class="page">
+      <div id="worksheetPreview" class="page-preview preview-viewport" role="region" aria-label="Worksheet Preview">
+        <article id="worksheetPage" class="page" aria-live="polite">
           <header class="page-header">
             <div class="title-block">
               <div class="worksheet-title" id="worksheetTitle">Math Practice</div>
@@ -191,7 +191,7 @@
       </div>
 
       <!-- Answer Key Preview (hidden until toggled) -->
-      <div class="page-preview" id="answerPreview" style="display:none">
+      <div class="page-preview preview-viewport" id="answerPreview" style="display:none" role="region" aria-label="Answer Key Preview">
         <article id="answerPage" class="page" aria-hidden="true">
           <header class="page-header">
             <div class="title-block">

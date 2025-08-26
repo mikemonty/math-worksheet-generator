@@ -11,17 +11,27 @@
   --print-page-width:  calc(8.5in - 1in);   /* 7.5in */
   --print-page-height: calc(11in  - 1in);   /* 10in  */
 
-  /* On-screen preview scale (tweak as desired) */
+  /* Fallback on-screen preview scale (JS overrides) */
   --preview-scale: 0.80;
 }
 
 *{ box-sizing:border-box; }
-html, body { margin:0; padding:0; color:var(--fg); background:var(--bg);
-  font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+html, body {
+  margin:0; padding:0; color:var(--fg); background:var(--bg);
+  font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Optional landscape support */
+html[data-orientation="landscape"]{
+  --print-page-width:  calc(11in - 1in);
+  --print-page-height: calc(8.5in - 1in);
+}
 
 /* Header */
-.app-header{ display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px; border-bottom:1px solid var(--line); background:#fff; }
+.app-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-bottom:1px solid var(--line); background:#fff;
+}
 .app-header h1{ margin:0; font-size:18px; }
 button{ border:1px solid var(--line); background:#fff; color:#111; padding:8px 12px; border-radius:6px; cursor:pointer; }
 button.primary{ background:var(--accent); color:#fff; border-color:transparent; }
@@ -30,35 +40,51 @@ button.ghost{ background:transparent; }
 button:disabled{ opacity:.6; cursor:not-allowed; }
 
 /* Layout */
-.app{ display:grid; grid-template-columns: 320px 1fr; gap:16px; max-width:1280px; margin:16px auto; padding:0 16px; }
-.controls{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; position:sticky; top:12px; align-self:start; }
-.group{ margin-bottom:14px; } .group label{ display:block; margin-bottom:6px; color:#222; }
-.group input[type="number"], .group select{ width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+.app{
+  display:grid; grid-template-columns: 320px 1fr; gap:16px;
+  max-width:1280px; margin:16px auto; padding:0 16px;
+}
+.controls{
+  background:#fff; border:1px solid var(--line); border-radius:10px;
+  padding:14px; position:sticky; top:12px; align-self:start;
+}
+.group{ margin-bottom:14px; }
+.group label{ display:block; margin-bottom:6px; color:#222; }
+.group input[type="number"], .group select{
+  width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; background:#fff;
+}
 .checkbox{ display:flex; gap:8px; align-items:center; }
 .group small{ color:var(--muted); }
 .manual-row{ display:grid; grid-template-columns:auto 1fr auto 1fr auto; gap:8px; align-items:center; }
 .manual-list{ list-style:none; padding:0; margin:10px 0 0 0; }
-.manual-list li{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 8px; background:#f7f7f7; border:1px solid var(--line); border-radius:6px; margin-bottom:6px; }
+.manual-list li{
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:6px 8px; background:#f7f7f7; border:1px solid var(--line); border-radius:6px; margin-bottom:6px;
+}
 .manual-list button{ padding:4px 8px; }
 
 .pages{ display:flex; flex-direction:column; gap:24px; align-items:center; }
 
-/* ===== Preview wrapper: controls the *layout footprint* and applies scaling ===== */
-.page-preview{
+/* ===== Screen preview wrapper ===== */
+.preview-viewport{
   position: relative;
-  width:  calc(var(--print-page-width)  * var(--preview-scale));
-  height: calc(var(--print-page-height) * var(--preview-scale));
-  /* keeps the preview centered and prevents overflow */
+  width: 100%;
+  aspect-ratio: calc(var(--print-page-width) / var(--print-page-height));
   overflow: hidden;
+  background: transparent;
 }
-
-/* The real page lives inside the wrapper and is scaled visually */
-.page-preview .page{
-  position:absolute; inset:0 auto auto 0;     /* top-left */
+@supports not (aspect-ratio: 1 / 1) {
+  .preview-viewport{
+    width: calc(var(--print-page-width) * var(--preview-scale));
+    height: calc(var(--print-page-height) * var(--preview-scale));
+  }
+}
+.preview-viewport .page{
+  position:absolute; top:0; left:0;
   width:  var(--print-page-width);
   height: var(--print-page-height);
-  transform: scale(var(--preview-scale));
   transform-origin: top left;
+  transform: scale(var(--preview-scale));
 
   background:var(--paper);
   border:1px solid var(--line);
@@ -71,44 +97,74 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 .page-header{
   display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px;
-  margin:18px 18px 28px 18px; /* margin because page itself has no padding */
+  margin:18px 18px 28px 18px;
 }
 .title-block{ width:100%; display:flex; flex-direction:column; gap:6px; }
 .worksheet-title{ font-size:20px; font-weight:700; }
 .worksheet-sub{ color:var(--muted); font-size:14px; }
 
 /* Name/Date line */
-.name-date-line{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:6px; gap:20px; }
-.name-date-line .name,.name-date-line .date{ flex:1; font-size:14px; display:flex; align-items:center; }
-.name-date-line .name::after,.name-date-line .date::after{ content:""; flex:1; border-bottom:1px solid #000; margin-left:6px; }
+.name-date-line{
+  display:flex; justify-content:space-between; align-items:flex-end; margin-top:6px; gap:20px;
+}
+.name-date-line .name,.name-date-line .date{
+  flex:1; font-size:14px; display:flex; align-items:center;
+}
+.name-date-line .name::after,.name-date-line .date::after{
+  content:""; flex:1; border-bottom:1px solid #000; margin-left:6px;
+}
 
-/* Grid: identical rules for screen and print */
+/* Grid */
 .grid{
   flex:1;
   display:grid;
   gap:24px 28px;
-  align-content: stretch;              /* rows fill the fixed height evenly; JS sets rows */
-  justify-content: space-between;
+  /* pack rows at the top by default so there isn't a huge void under the header */
+  align-content: start;
+  justify-content: stretch;
   margin:0 18px 18px 18px;
+  min-width:0;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
 }
+/* When long-division blocks are present, give a touch more column space */
+.grid.has-long-division{ column-gap:36px; }
 
 /* Horizontal problems */
-.problem.horizontal{ border-bottom:1px dashed #ccc; padding-bottom:12px; min-height:48px;
-  display:flex; align-items:flex-end; gap:10px; font-size:20px; flex-wrap:nowrap; }
-.problem.horizontal .expr{ white-space:nowrap; }
-.problem.horizontal .line{ flex:1 1 140px; border-bottom:2px solid #000; height:0; transform:translateY(-2px); min-width:120px; }
+.problem.horizontal{
+  border-bottom:1px dashed #ccc; padding-bottom:12px; min-height:48px;
+  display:flex; align-items: baseline;
+  gap:10px; font-size:20px; flex-wrap:nowrap;
+  min-width:0;
+}
+.problem.horizontal > *{ min-width:0; }
+.problem.horizontal .expr{ white-space:nowrap; min-width:0; }
+.problem.horizontal .line{
+  flex:1 1 auto; border-bottom:2px solid #000; height:0; transform:translateY(-2px);
+  min-width:0;
+}
 
 /* Vertical problems */
-.problem.vertical{ width:100%; max-width:240px; padding-bottom:8px; border-bottom:1px dashed #ccc; min-height:72px; }
+.problem.vertical{
+  width:100%; max-width:240px; padding-bottom:8px; border-bottom:1px dashed #ccc; min-height:72px;
+}
 .problem.vertical .row{ display:flex; justify-content:flex-end; align-items:center; gap:6px; font-size:20px; }
 .problem.vertical .row .op{ width:16px; text-align:center; }
 .problem.vertical .rule{ margin-top:2px; border-bottom:2px solid #000; height:0; }
 
 /* Long division (“house”) */
-.problem.long-division{ display:flex; align-items:flex-start; gap:10px; font-size:20px; min-height:56px; border-bottom:1px dashed #ccc; padding-bottom:12px; }
-.long-division .ld{ display:flex; align-items:flex-start; gap:8px; width:100%; }
+.problem.long-division{
+  display:flex; align-items:flex-start; gap:10px; font-size:20px; min-height:56px; border-bottom:1px dashed #ccc; padding-bottom:12px;
+  min-width:0;
+}
+.long-division .ld{ display:flex; align-items:flex-start; gap:8px; width:100%; min-width:0; }
 .long-division .ld-divisor{ font-weight:400; line-height:1; padding-top:6px; }
-.long-division .ld-house{ border-top:2px solid #000; border-left:2px solid #000; padding:6px 12px 8px 12px; min-width:180px; max-width:100%; }
+.long-division .ld-house{
+  border-top:2px solid #000; border-left:2px solid #000;
+  padding:6px 12px 8px 12px;
+  min-width:140px;                /* slightly smaller than before so 3-up never crowd */
+  max-width:100%;
+  display:inline-block;
+}
 .long-division .ld-dividend{ font-weight:400; line-height:1.2; white-space:nowrap; }
 
 /* Answers page tweaks */
@@ -118,25 +174,40 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 /* Tiny text */
 .tiny{ color:var(--muted); font-size:12px; }
 
-/* ===== Print: remove scaling wrapper, render full size ===== */
+/* ===== Print ===== */
 @page { size: Letter portrait; margin: 0.5in; }
 @media print{
   .no-print{ display:none !important; }
   body{ background:#fff; }
   .pages{ align-items:stretch; }
 
-  .page-preview{
-    width:auto !important; height:auto !important; overflow:visible;
-    break-after: always;
+  /* Remove preview wrappers from layout and neutralize any legacy break rules */
+  .preview-viewport{
+    display: contents !important;
+    break-after: auto !important;
+    page-break-after: auto !important;
   }
-  .page-preview .page{
-    position: static;
+
+  /* Hide pages explicitly marked as not to print (e.g., answer key off) */
+  .page[aria-hidden="true"]{ display:none !important; }
+
+  /* Print page box */
+  .page{
+    position: static !important;
     transform: none !important;
     width:  var(--print-page-width) !important;
     height: var(--print-page-height) !important;
     border:none; border-radius:0;
+    break-after: auto !important;         /* never force a trailing blank */
+    page-break-after: auto !important;
   }
 
+/* Break only before the Answer Key when it WILL print (Safari-safe) */
+#answerPage:not([aria-hidden="true"]) {
+  break-before: page !important;
+  page-break-before: always !important; /* legacy */
+}
+
   .page-header{ margin:18px 18px 28px 18px; }
-  .grid{ gap:24px 28px; align-content: stretch; margin:0 18px 18px 18px; }
+  .grid{ gap:24px 28px; align-content: start; margin:0 18px 18px 18px; }
 }
