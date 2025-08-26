@@ -6,6 +6,9 @@
   --accent:#2c7be5;
   --paper:#fff;
   --line:#ddd;
+
+  /* content area inside printed page (Letter 11in tall, minus 1in total margins) */
+  --print-page-height: calc(11in - 1in);
 }
 
 *{ box-sizing:border-box; }
@@ -65,12 +68,19 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 .pages{
   display:flex; flex-direction:column; gap:24px;
 }
+
+/* PAGE behaves like a real sheet so grid can fill the space evenly */
 .page{
   background:var(--paper);
   border:1px solid var(--line);
   border-radius:10px;
   padding:18px;
+
+  /* Make page a column and let grid take leftover height */
+  display:flex; flex-direction:column;
+  min-height: var(--print-page-height);
 }
+
 .page-header{
   display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:8px;
 }
@@ -80,11 +90,17 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   display:flex; gap:24px; font-size:14px; color:#000;
 }
 
+/* GRID now fills the remaining vertical space and spreads content evenly */
 .grid{
+  flex:1; /* fill leftover space under header */
   display:grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap:16px 20px;
-  padding-top:6px;
+
+  /* columns/rows are set from JS; gaps provide writing room */
+  gap:20px 24px;
+
+  /* most important: distribute tracks to fill the page evenly */
+  align-content: space-between;   /* vertical distribution of rows */
+  justify-content: space-between; /* horizontal distribution of columns */
 }
 
 /* Horizontal problem style */
@@ -99,10 +115,11 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   flex:1; border-bottom:1px solid #bbb; height:0; transform: translateY(-4px);
 }
 
-/* Vertical problem style */
+/* Vertical problem style (more minimum space so it breathes) */
 .problem.vertical{
   width:100%; max-width:220px; padding-bottom:6px;
   border-bottom:1px dashed #ccc;
+  min-height:64px;
 }
 .problem.vertical .row{
   display:flex; justify-content:flex-end; align-items:center; gap:6px;
@@ -115,7 +132,7 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 
 /* Answers page tweaks */
 .grid.answers .problem{
-  border:none; padding-bottom:0;
+  border:none; padding-bottom:0; min-height:auto;
 }
 .grid.answers .equation{
   font-size:16px;
@@ -134,6 +151,7 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   body{ background:#fff; }
   .page{
     border:none; border-radius:0; padding:0; page-break-after:always;
+    min-height: var(--print-page-height);
   }
-  .grid{ gap:14px 18px; }
+  .grid{ gap:18px 22px; }
 }

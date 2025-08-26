@@ -31,7 +31,7 @@
 
   /** State */
   let manual = []; // [{a,b}]
-  let lastGenerated = []; // freezes the set so answers match
+  let lastGenerated = [];
 
   /** Utils */
   const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -48,7 +48,6 @@
   }
 
   function makeRandomProblem(cfg) {
-    // If 2-digit × 1-digit allowed (grade 5 option), mix them in ~40% of the time.
     if (cfg.allow2x1 && Math.random() < 0.4) {
       const a = randInt(10, cfg.twoDigitMax);
       const b = randInt(2, 9);
@@ -100,15 +99,37 @@
   toggleGrade5Extras();
   els.grade.addEventListener('change', toggleGrade5Extras);
 
+  /** Helpers to evenly fill the page with a grid */
+  function setEvenGrid(container, count, layout, answers=false) {
+    // Choose base columns by layout; allow small auto-adjusts for very small counts
+    let cols = layout === 'vertical' ? 3 : 4;
+
+    // If very few problems, reduce columns so spacing looks natural
+    if (count <= 6) cols = Math.max(2, layout === 'vertical' ? 2 : 2);
+    if (count === 1) cols = 1;
+
+    // Compute rows to fit everything
+    const rows = Math.ceil(count / cols);
+
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    container.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
+    // Answers page: often denser works; keep 4 columns where possible
+    if (answers) {
+      container.style.gridTemplateColumns = `repeat(4, 1fr)`;
+      container.style.gridTemplateRows = `repeat(${Math.ceil(count / 4)}, 1fr)`;
+    }
+  }
+
   /** Generate problems */
   function generate() {
     const count = Math.max(4, Math.min(120, Number(els.problemsCount.value) || 36));
     const cfg = gradeConfig(els.grade.value, els.allowTwoDigit.checked, els.twoDigitMax.value);
 
-    // Start with manual (dedupe exact duplicates minimally)
+    // Start with manual (dedupe exact duplicates)
     const out = [];
     const seen = new Set();
-    function key(p){ return `${p.a}x${p.b}`; }
+    const key = (p) => `${p.a}x${p.b}`;
 
     manual.forEach(p => {
       const k = key(p);
@@ -127,9 +148,9 @@
       guard++;
     }
 
-    lastGenerated = out; // freeze
+    lastGenerated = out;
 
-    // Render worksheet
+    // Render worksheet (with even distribution)
     renderWorksheet(out);
 
     // Render answer key (optional)
@@ -153,21 +174,19 @@
     const grid = els.problemsGrid;
     grid.innerHTML = '';
 
-    // Adjust columns for vertical layout (taller blocks)
-    grid.style.gridTemplateColumns = layout === 'vertical'
-      ? 'repeat(3, 1fr)'
-      : 'repeat(4, 1fr)';
-
+    // Build nodes
     problems.forEach(p => {
       const node = (layout === 'vertical') ? verticalProblemNode(p) : horizontalProblemNode(p);
       grid.appendChild(node);
     });
+
+    // Evenly distribute across the page area
+    setEvenGrid(grid, problems.length, layout, false);
   }
 
   function renderAnswerKey(problems) {
     const grid = els.answersGrid;
     grid.innerHTML = '';
-    grid.style.gridTemplateColumns = 'repeat(4, 1fr)';
 
     problems.forEach(p => {
       const wrap = document.createElement('div');
@@ -178,6 +197,9 @@
       wrap.appendChild(eq);
       grid.appendChild(wrap);
     });
+
+    // Even grid for answers too (denser)
+    setEvenGrid(grid, problems.length, 'horizontal', true);
   }
 
   /** Nodes */
