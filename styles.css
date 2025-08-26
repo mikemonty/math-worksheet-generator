@@ -7,185 +7,136 @@
   --paper:#fff;
   --line:#ddd;
 
-  /* content area inside printed page (Letter 11in tall, minus 1in total margins) */
-  --print-page-height: calc(11in - 1in);
+  /* Letter content box = page minus 0.5" margins on all sides */
+  --print-page-width:  calc(8.5in - 1in);   /* 7.5in */
+  --print-page-height: calc(11in  - 1in);   /* 10in  */
+
+  /* On-screen preview scale (tweak as desired) */
+  --preview-scale: 0.80;
 }
 
 *{ box-sizing:border-box; }
+html, body { margin:0; padding:0; color:var(--fg); background:var(--bg);
+  font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
 
-html, body {
-  margin:0; padding:0;
-  color:var(--fg);
-  background:var(--bg);
-  font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-}
-
-.app-header{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px; border-bottom:1px solid var(--line); background:#fff;
-}
+/* Header */
+.app-header{ display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-bottom:1px solid var(--line); background:#fff; }
 .app-header h1{ margin:0; font-size:18px; }
-button{
-  border:1px solid var(--line);
-  background:#fff; color:var(--ink);
-  padding:8px 12px; border-radius:6px; cursor:pointer;
-}
+button{ border:1px solid var(--line); background:#fff; color:#111; padding:8px 12px; border-radius:6px; cursor:pointer; }
 button.primary{ background:var(--accent); color:#fff; border-color:transparent; }
 button.secondary{ background:#f2f5ff; color:#123; }
 button.ghost{ background:transparent; }
 button:disabled{ opacity:.6; cursor:not-allowed; }
 
-.app{
-  display:grid; grid-template-columns: 320px 1fr; gap:16px;
-  max-width:1200px; margin:16px auto; padding:0 16px;
-}
-
-.controls{
-  background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px;
-  position:sticky; top:12px; align-self:start;
-}
-.group{ margin-bottom:14px; }
-.group label{ display:block; margin-bottom:6px; color:#222; }
-.group input[type="number"], .group select{
-  width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; background:#fff;
-}
+/* Layout */
+.app{ display:grid; grid-template-columns: 320px 1fr; gap:16px; max-width:1280px; margin:16px auto; padding:0 16px; }
+.controls{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; position:sticky; top:12px; align-self:start; }
+.group{ margin-bottom:14px; } .group label{ display:block; margin-bottom:6px; color:#222; }
+.group input[type="number"], .group select{ width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; background:#fff; }
 .checkbox{ display:flex; gap:8px; align-items:center; }
 .group small{ color:var(--muted); }
-
-.manual-row{
-  display:grid; grid-template-columns: 1fr auto 1fr auto; gap:8px; align-items:center;
-}
-.manual-list{
-  list-style:none; padding:0; margin:10px 0 0 0;
-}
-.manual-list li{
-  display:flex; justify-content:space-between; align-items:center;
-  gap:10px; padding:6px 8px; background:#f7f7f7; border:1px solid var(--line); border-radius:6px;
-  margin-bottom:6px;
-}
+.manual-row{ display:grid; grid-template-columns:auto 1fr auto 1fr auto; gap:8px; align-items:center; }
+.manual-list{ list-style:none; padding:0; margin:10px 0 0 0; }
+.manual-list li{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 8px; background:#f7f7f7; border:1px solid var(--line); border-radius:6px; margin-bottom:6px; }
 .manual-list button{ padding:4px 8px; }
 
-.pages{
-  display:flex; flex-direction:column; gap:24px;
+.pages{ display:flex; flex-direction:column; gap:24px; align-items:center; }
+
+/* ===== Preview wrapper: controls the *layout footprint* and applies scaling ===== */
+.page-preview{
+  position: relative;
+  width:  calc(var(--print-page-width)  * var(--preview-scale));
+  height: calc(var(--print-page-height) * var(--preview-scale));
+  /* keeps the preview centered and prevents overflow */
+  overflow: hidden;
 }
 
-/* PAGE behaves like a real sheet so grid can fill the space evenly */
-.page{
+/* The real page lives inside the wrapper and is scaled visually */
+.page-preview .page{
+  position:absolute; inset:0 auto auto 0;     /* top-left */
+  width:  var(--print-page-width);
+  height: var(--print-page-height);
+  transform: scale(var(--preview-scale));
+  transform-origin: top left;
+
   background:var(--paper);
   border:1px solid var(--line);
   border-radius:10px;
-  padding:18px;
 
-  /* Make page a column and let grid take leftover height */
   display:flex; flex-direction:column;
-  min-height: var(--print-page-height);
 }
 
-/* Header + title block */
+/* Page header */
 .page-header{
   display:flex; align-items:flex-start; justify-content:space-between;
-  gap:12px; margin-bottom:8px;
+  gap:12px;
+  margin:18px 18px 28px 18px; /* margin because page itself has no padding */
 }
-.title-block {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.worksheet-title {
-  font-size: 20px;
-  font-weight: 700;
-}
-.worksheet-sub {
-  color: var(--muted);
-  font-size: 14px;
-}
+.title-block{ width:100%; display:flex; flex-direction:column; gap:6px; }
+.worksheet-title{ font-size:20px; font-weight:700; }
+.worksheet-sub{ color:var(--muted); font-size:14px; }
 
-/* Name/Date line directly under title */
-.name-date-line {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 6px;
-  gap: 20px;
-}
-.name-date-line .name,
-.name-date-line .date {
-  flex: 1;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-.name-date-line .name::after,
-.name-date-line .date::after {
-  content: "";
-  flex: 1;
-  border-bottom: 1px solid #000;
-  margin-left: 6px;
-}
+/* Name/Date line */
+.name-date-line{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:6px; gap:20px; }
+.name-date-line .name,.name-date-line .date{ flex:1; font-size:14px; display:flex; align-items:center; }
+.name-date-line .name::after,.name-date-line .date::after{ content:""; flex:1; border-bottom:1px solid #000; margin-left:6px; }
 
-/* GRID now fills the remaining vertical space and spreads content evenly */
+/* Grid: identical rules for screen and print */
 .grid{
-  flex:1; /* fill leftover space under header */
+  flex:1;
   display:grid;
-
-  /* columns/rows are set from JS; gaps provide writing room */
-  gap:20px 24px;
-
-  /* most important: distribute tracks to fill the page evenly */
-  align-content: space-between;   /* vertical distribution of rows */
-  justify-content: space-between; /* horizontal distribution of columns */
+  gap:24px 28px;
+  align-content: stretch;              /* rows fill the fixed height evenly; JS sets rows */
+  justify-content: space-between;
+  margin:0 18px 18px 18px;
 }
 
-/* Horizontal problem style */
-.problem.horizontal{
-  border-bottom:1px dashed #ccc;
-  padding-bottom:10px;
-  min-height:42px;
-  display:flex; align-items:center; justify-content:flex-start; gap:8px;
-  font-size:18px;
-}
-.problem.horizontal .line{
-  flex:1; border-bottom:1px solid #bbb; height:0; transform: translateY(-4px);
-}
+/* Horizontal problems */
+.problem.horizontal{ border-bottom:1px dashed #ccc; padding-bottom:12px; min-height:48px;
+  display:flex; align-items:flex-end; gap:10px; font-size:20px; flex-wrap:nowrap; }
+.problem.horizontal .expr{ white-space:nowrap; }
+.problem.horizontal .line{ flex:1 1 140px; border-bottom:2px solid #000; height:0; transform:translateY(-2px); min-width:120px; }
 
-/* Vertical problem style (more minimum space so it breathes) */
-.problem.vertical{
-  width:100%; max-width:220px; padding-bottom:6px;
-  border-bottom:1px dashed #ccc;
-  min-height:64px;
-}
-.problem.vertical .row{
-  display:flex; justify-content:flex-end; align-items:center; gap:6px;
-  font-size:18px;
-}
-.problem.vertical .row .op{ width:14px; text-align:center; }
-.problem.vertical .rule{
-  margin-top:2px; border-bottom:2px solid #000; height:0;
-}
+/* Vertical problems */
+.problem.vertical{ width:100%; max-width:240px; padding-bottom:8px; border-bottom:1px dashed #ccc; min-height:72px; }
+.problem.vertical .row{ display:flex; justify-content:flex-end; align-items:center; gap:6px; font-size:20px; }
+.problem.vertical .row .op{ width:16px; text-align:center; }
+.problem.vertical .rule{ margin-top:2px; border-bottom:2px solid #000; height:0; }
+
+/* Long division (“house”) */
+.problem.long-division{ display:flex; align-items:flex-start; gap:10px; font-size:20px; min-height:56px; border-bottom:1px dashed #ccc; padding-bottom:12px; }
+.long-division .ld{ display:flex; align-items:flex-start; gap:8px; width:100%; }
+.long-division .ld-divisor{ font-weight:400; line-height:1; padding-top:6px; }
+.long-division .ld-house{ border-top:2px solid #000; border-left:2px solid #000; padding:6px 12px 8px 12px; min-width:180px; max-width:100%; }
+.long-division .ld-dividend{ font-weight:400; line-height:1.2; white-space:nowrap; }
 
 /* Answers page tweaks */
-.grid.answers .problem{
-  border:none; padding-bottom:0; min-height:auto;
-}
-.grid.answers .equation{
-  font-size:16px;
-}
+.grid.answers .problem{ border:none; padding-bottom:0; min-height:auto; }
+.grid.answers .equation{ font-size:18px; }
 
-/* Buttons & tiny text */
+/* Tiny text */
 .tiny{ color:var(--muted); font-size:12px; }
 
-/* Print styles */
-@page {
-  size: Letter portrait;
-  margin: 0.5in;
-}
+/* ===== Print: remove scaling wrapper, render full size ===== */
+@page { size: Letter portrait; margin: 0.5in; }
 @media print{
   .no-print{ display:none !important; }
   body{ background:#fff; }
-  .page{
-    border:none; border-radius:0; padding:0; page-break-after:always;
-    min-height: var(--print-page-height);
+  .pages{ align-items:stretch; }
+
+  .page-preview{
+    width:auto !important; height:auto !important; overflow:visible;
+    break-after: always;
   }
-  .grid{ gap:18px 22px; }
+  .page-preview .page{
+    position: static;
+    transform: none !important;
+    width:  var(--print-page-width) !important;
+    height: var(--print-page-height) !important;
+    border:none; border-radius:0;
+  }
+
+  .page-header{ margin:18px 18px 28px 18px; }
+  .grid{ gap:24px 28px; align-content: stretch; margin:0 18px 18px 18px; }
 }

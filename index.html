@@ -3,19 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Multiplication Worksheet Generator</title>
+  <title>Math Worksheet Generator</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="app-header no-print">
-    <h1>Multiplication Worksheet Generator</h1>
+    <h1>Math Worksheet Generator</h1>
     <button id="printBtn" class="primary">Print Worksheets</button>
   </header>
 
   <main class="app">
     <!-- Controls -->
     <aside class="controls no-print">
-      <!-- Mode -->
+      <div class="group">
+        <label for="operation"><strong>Operation</strong></label>
+        <select id="operation">
+          <option value="multiplication" selected>Multiplication (×)</option>
+          <option value="addition">Addition (+)</option>
+          <option value="subtraction">Subtraction (−)</option>
+          <option value="division">Division (÷)</option>
+        </select>
+      </div>
+
+      <div class="group" id="subtractionOptions" style="display:none">
+        <label class="checkbox">
+          <input type="checkbox" id="noNegatives" checked />
+          No negatives (ensure a ≥ b)
+        </label>
+      </div>
+
+      <div class="group" id="divisionOptions" style="display:none">
+        <label class="checkbox">
+          <input type="checkbox" id="wholeNumberDivision" checked />
+          Whole-number answers only (no remainders)
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="showRemainders" />
+          If remainders occur, show as “q r r” on answer key
+        </label>
+
+        <label for="divisionStyle"><strong>Division style</strong></label>
+        <select id="divisionStyle">
+          <option value="inline" selected>Inline (8 ÷ 2 = __)</option>
+          <option value="long">Long (“house”: 2 ) 8)</option>
+          <option value="mixed">Mixed (alternate)</option>
+        </select>
+        <small>Long division uses a compact bracket/overbar. Division always renders horizontally.</small>
+      </div>
+
       <div class="group">
         <label><strong>Difficulty mode</strong></label>
         <label class="checkbox">
@@ -28,7 +63,6 @@
         </label>
       </div>
 
-      <!-- Grade controls -->
       <div id="gradeControls">
         <div class="group">
           <label for="gradeLevel"><strong>Grade level</strong></label>
@@ -42,17 +76,16 @@
         <div class="group" id="grade5Extras">
           <label class="checkbox">
             <input type="checkbox" id="allowTwoDigit" />
-            Allow 2-digit × 1-digit
+            Allow 2-digit × 1-digit (multiplication)
           </label>
           <label for="twoDigitMax">Max 2-digit (10–99)</label>
           <input id="twoDigitMax" type="number" min="10" max="99" value="99" />
         </div>
       </div>
 
-      <!-- Custom digit controls -->
       <div id="customControls" style="display:none">
         <div class="group">
-          <label><strong>Operand A (left/top) digits</strong></label>
+          <label><strong>Left operand (A) digits</strong></label>
           <div class="manual-row">
             <label for="aMinDigits" style="margin:0">Min</label>
             <input id="aMinDigits" type="number" min="1" max="6" value="2" />
@@ -62,7 +95,7 @@
         </div>
 
         <div class="group">
-          <label><strong>Operand B (righ/bottom) digits</strong></label>
+          <label><strong>Right operand (B) digits</strong></label>
           <div class="manual-row">
             <label for="bMinDigits" style="margin:0">Min</label>
             <input id="bMinDigits" type="number" min="1" max="6" value="2" />
@@ -79,7 +112,6 @@
         </div>
       </div>
 
-      <!-- Generic layout controls -->
       <div class="group">
         <label for="problemsCount"><strong>Problems per page</strong></label>
         <input id="problemsCount" type="number" min="4" max="120" step="1" value="12" />
@@ -89,9 +121,10 @@
       <div class="group">
         <label for="layout"><strong>Problem layout</strong></label>
         <select id="layout">
-          <option value="horizontal" selected>Horizontal (a × b = ___)</option>
+          <option value="horizontal" selected>Horizontal (a ? b = ___)</option>
           <option value="vertical">Vertical (stacked)</option>
         </select>
+        <small>Note: Division always renders horizontally.</small>
       </div>
 
       <div class="group">
@@ -113,12 +146,18 @@
       <div class="group">
         <h3>Manual problems</h3>
         <div class="manual-row">
+          <select id="manualOp">
+            <option value="addition">+</option>
+            <option value="subtraction">−</option>
+            <option value="multiplication" selected>×</option>
+            <option value="division">÷</option>
+          </select>
           <input id="manA" type="number" min="0" max="999999" placeholder="a" />
-          <span>×</span>
+          <span>?</span>
           <input id="manB" type="number" min="0" max="999999" placeholder="b" />
           <button id="addManual" class="secondary">Add</button>
         </div>
-        <small>Manual problems are used first; remaining slots are filled randomly.</small>
+        <small>Manual problems use the chosen operator (left). They’re used first; remaining slots fill from the settings above.</small>
         <ul id="manualList" class="manual-list"></ul>
       </div>
 
@@ -134,35 +173,35 @@
 
     <!-- Worksheet & Answer Key -->
     <section class="pages">
-      <!-- Worksheet Page -->
-      <article id="worksheetPage" class="page">
-        <header class="page-header">
-          <div class="title-block">
-            <div class="worksheet-title" id="worksheetTitle">Multiplication Practice</div>
-            <div class="worksheet-sub" id="worksheetSub"></div>
-
-            <!-- Name/Date line directly beneath title -->
-            <div class="name-date-line" id="nameDateLine">
-              <div class="name">Name:</div>
-              <div class="date">Date:</div>
+      <!-- PREVIEW WRAPPER scales the page for screen without affecting print -->
+      <div class="page-preview">
+        <article id="worksheetPage" class="page">
+          <header class="page-header">
+            <div class="title-block">
+              <div class="worksheet-title" id="worksheetTitle">Math Practice</div>
+              <div class="worksheet-sub" id="worksheetSub"></div>
+              <div class="name-date-line" id="nameDateLine">
+                <div class="name">Name:</div>
+                <div class="date">Date:</div>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+          <div id="problemsGrid" class="grid"></div>
+        </article>
+      </div>
 
-        <div id="problemsGrid" class="grid"></div>
-      </article>
-
-      <!-- Answer Key Page (never shows name/date) -->
-      <article id="answerPage" class="page" aria-hidden="true">
-        <header class="page-header">
-          <div class="title-block">
-            <div class="worksheet-title">Answer Key</div>
-            <div class="worksheet-sub" id="answerSub"></div>
-          </div>
-        </header>
-
-        <div id="answersGrid" class="grid answers"></div>
-      </article>
+      <!-- Answer Key Preview (hidden until toggled) -->
+      <div class="page-preview" id="answerPreview" style="display:none">
+        <article id="answerPage" class="page" aria-hidden="true">
+          <header class="page-header">
+            <div class="title-block">
+              <div class="worksheet-title">Answer Key</div>
+              <div class="worksheet-sub" id="answerSub"></div>
+            </div>
+          </header>
+          <div id="answersGrid" class="grid answers"></div>
+        </article>
+      </div>
     </section>
   </main>
 
