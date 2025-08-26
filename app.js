@@ -37,6 +37,7 @@
     generateBtn: document.getElementById('generateBtn'),
     clearBtn: document.getElementById('clearBtn'),
     printBtn: document.getElementById('printBtn'),
+    printBtnMobile: document.getElementById('printBtnMobile'),
 
     worksheetPreview: document.getElementById('worksheetPreview'),
     answerPreview: document.getElementById('answerPreview'),
@@ -512,6 +513,7 @@
     queueFit();
   });
   els.printBtn.addEventListener('click', () => window.print());
+  els.printBtnMobile.addEventListener('click', () => window.print());  
 
   // Toggle answer key visibility without regenerating
   els.includeAnswerKey.addEventListener('change', () => {

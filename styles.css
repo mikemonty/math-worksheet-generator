@@ -211,3 +211,45 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   .page-header{ margin:18px 18px 28px 18px; }
   .grid{ gap:24px 28px; align-content: start; margin:0 18px 18px 18px; }
 }
+
+/* ===== Mobile layout ===== */
+@media (max-width: 900px){
+  .app{
+    grid-template-columns: 1fr;   /* stack: controls on top, worksheet below */
+    gap: 12px;
+  }
+  .controls{
+    position: static;             /* avoid sticky oddities on small screens */
+  }
+  .pages{
+    align-items: stretch;         /* let preview fill width; no horizontal scroll */
+    width: 100%;
+  }
+
+  /* Make the preview wrapper always fit the screen width */
+  .preview-viewport{
+    width: 100% !important;
+    max-width: 100%;
+  }
+  @supports not (aspect-ratio: 1 / 1){
+    /* Fallback for older browsers: still force it to fit the viewport width */
+    .preview-viewport{
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
+}
+
+/* Mobile-only print button between menu and worksheet */
+.mobile-actions{ display:none; }
+
+@media (max-width: 900px){
+  .mobile-actions{
+    display:block;
+    width:100%;
+  }
+  /* match page padding when inside .app grid */
+  .mobile-actions button{
+    width:100%;
+  }
+}
